@@ -20,6 +20,21 @@
       * {
         box-sizing: border-box;
       }
+
+      @media print {
+        body {
+          background: #08111b !important;
+        }
+
+        .no-print {
+          display: none !important;
+        }
+
+        a {
+          color: inherit !important;
+          text-decoration: none !important;
+        }
+      }
     </style>
   </head>
   <body>

@@ -237,6 +237,35 @@ const styles = {
     fontSize: 14,
     marginBottom: 18,
   },
+  heroTop: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 8,
+  },
+  avatar: {
+    width: 68,
+    height: 68,
+    borderRadius: "50%",
+    border: `2px solid ${accent}`,
+    background: "rgba(255,255,255,0.06)",
+    objectFit: "cover",
+    flexShrink: 0,
+  },
+  avatarFallback: {
+    width: 68,
+    height: 68,
+    borderRadius: "50%",
+    border: `2px solid ${accent}`,
+    background: `linear-gradient(135deg, rgba(200,241,53,0.24), rgba(89,243,192,0.14))`,
+    color: text,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 24,
+    fontWeight: 800,
+    flexShrink: 0,
+  },
   heroGrid: {
     display: "grid",
     gridTemplateColumns: "1fr",
@@ -425,6 +454,46 @@ const styles = {
     gap: 10,
     flexWrap: "wrap",
     marginTop: 14,
+  },
+  reportGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: 16,
+  },
+  reportHero: {
+    padding: 20,
+    borderRadius: 22,
+    background: `linear-gradient(135deg, rgba(200,241,53,0.09), rgba(89,243,192,0.07))`,
+    border: `1px solid rgba(200,241,53,0.18)`,
+  },
+  reportTitle: {
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    fontSize: 30,
+    lineHeight: 1,
+    marginBottom: 8,
+  },
+  reportMeta: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: 10,
+  },
+  reportCard: {
+    background: panel,
+    border: `1px solid ${border}`,
+    borderRadius: 18,
+    padding: 16,
+  },
+  reportLabel: {
+    fontSize: 10,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    color: textMuted,
+    marginBottom: 6,
+  },
+  reportValue: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: text,
   },
   badge: {
     display: "inline-block",
@@ -780,6 +849,22 @@ const downloadJson = (filename, data) => {
   URL.revokeObjectURL(url);
 };
 
+const readFileAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("Unable to read image file."));
+    reader.readAsDataURL(file);
+  });
+
+const readFileAsText = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("Unable to read backup file."));
+    reader.readAsText(file);
+  });
+
 const createSession = (day, profile) => {
   const startedAt = new Date().toISOString();
   return {
@@ -850,6 +935,7 @@ export default function FitnessApp() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [expandedDay, setExpandedDay] = useState(0);
   const [profile, setProfile] = useState(storedState?.profile ?? defaultProfile);
+  const [profilePhoto, setProfilePhoto] = useState(storedState?.profilePhoto ?? "");
   const [sessions, setSessions] = useState(storedState?.sessions ?? []);
   const [sessionSummary, setSessionSummary] = useState(storedState?.summary ?? defaultSessionSummary);
   const [activeSession, setActiveSession] = useState(storedState?.activeSession ?? null);
@@ -863,6 +949,7 @@ export default function FitnessApp() {
   const [customWorkoutType, setCustomWorkoutType] = useState(profile.workoutType);
   const [selectedExerciseName, setSelectedExerciseName] = useState(defaultWorkoutDays[0].exercises[0].name);
   const tickRef = useRef(null);
+  const backupInputRef = useRef(null);
   const isDesktop = viewportWidth >= 960;
 
   useEffect(() => {
@@ -905,9 +992,9 @@ export default function FitnessApp() {
 
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ profile, sessions, summary: sessionSummary, activeSession, selectedDayId })
+      JSON.stringify({ profile, profilePhoto, sessions, summary: sessionSummary, activeSession, selectedDayId })
     );
-  }, [profile, sessions, sessionSummary, activeSession, selectedDayId]);
+  }, [profile, profilePhoto, sessions, sessionSummary, activeSession, selectedDayId]);
 
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth);
@@ -1041,11 +1128,77 @@ export default function FitnessApp() {
   const exportProgress = () => {
     downloadJson("gym-progress-backup.json", {
       profile,
+      profilePhoto,
       sessions,
       summary: sessionSummary,
       selectedDayId,
       exportedAt: new Date().toISOString(),
     });
+  };
+
+  const exportAsPdf = () => {
+    setActiveTab("report");
+    window.setTimeout(() => window.print(), 150);
+  };
+
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const dataUrl = await readFileAsDataUrl(file);
+    setProfilePhoto(dataUrl);
+    event.target.value = "";
+  };
+
+  const handleBackupImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const rawText = await readFileAsText(file);
+      const imported = JSON.parse(rawText);
+
+      if (!imported || typeof imported !== "object") {
+        throw new Error("Invalid backup format.");
+      }
+
+      const shouldRestore = window.confirm(
+        "Importing this backup will replace your current profile, photo, workout sessions, and summary data. Do you want to continue?"
+      );
+
+      if (!shouldRestore) {
+        return;
+      }
+
+      const nextProfile = imported.profile ?? defaultProfile;
+      setProfile(nextProfile);
+      setCustomName(nextProfile.name ?? defaultProfile.name);
+      setCustomWeight(String(nextProfile.weight ?? defaultProfile.weight));
+      setCustomHeight(String(nextProfile.height ?? defaultProfile.height));
+      setCustomGoal(nextProfile.goal ?? defaultProfile.goal);
+      setCustomSessionsPerWeek(String(nextProfile.sessionsPerWeek ?? defaultProfile.sessionsPerWeek));
+      setCustomWorkoutType(nextProfile.workoutType ?? defaultProfile.workoutType);
+
+      setProfilePhoto(imported.profilePhoto ?? "");
+      setSessions(Array.isArray(imported.sessions) ? imported.sessions : []);
+      setSessionSummary(imported.summary ?? defaultSessionSummary);
+      setSelectedDayId(imported.selectedDayId ?? defaultWorkoutDays[0].id);
+      setActiveSession(null);
+      setSessionNotes("");
+      setActiveTab("report");
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Unable to import backup.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const triggerBackupImport = () => {
+    backupInputRef.current?.click();
   };
 
   const workoutHistory = sessions.slice(0, 6);
@@ -1096,13 +1249,20 @@ export default function FitnessApp() {
       <div style={heroStyle}>
         <div style={styles.heroAccent} />
         <div style={styles.heroLabel}>// Personalized training dashboard</div>
-        <h1 style={heroTitleStyle}>
-          {profile.name}
-          <br />
-          WORKOUT
-          <br />
-          LOG
-        </h1>
+          <div style={styles.heroTop}>
+            {profilePhoto ? (
+              <img src={profilePhoto} alt={`${profile.name}'s profile`} style={styles.avatar} />
+            ) : (
+              <div style={styles.avatarFallback}>{profile.name.charAt(0).toUpperCase()}</div>
+            )}
+            <h1 style={heroTitleStyle}>
+              {profile.name}
+              <br />
+              WORKOUT
+              <br />
+              LOG
+            </h1>
+          </div>
         <div style={styles.heroSub}>
           Track every session, keep your timer running, and save your progress locally on this device.
         </div>
@@ -1121,12 +1281,13 @@ export default function FitnessApp() {
         </div>
       </div>
 
-      <div style={styles.tabs}>
+      <div className="no-print" style={styles.tabs}>
         {[
           { id: "dashboard", label: "Dashboard" },
           { id: "workout", label: "Workout" },
           { id: "history", label: "History" },
           { id: "nutrition", label: "Nutrition" },
+          { id: "report", label: "Report" },
           { id: "settings", label: "Settings" },
         ].map((tab) => (
           <button key={tab.id} style={styles.tab(activeTab === tab.id)} onClick={() => setActiveTab(tab.id)}>
@@ -1481,6 +1642,27 @@ export default function FitnessApp() {
         <div style={sectionStyle}>
           <div style={styles.card}>
             <div style={styles.sectionTitle}>Personal Profile</div>
+            <div style={{ ...styles.reportGrid, marginBottom: 16 }}>
+              <div style={styles.reportHero}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt={`${profile.name}'s profile preview`} style={styles.avatar} />
+                  ) : (
+                    <div style={styles.avatarFallback}>{profile.name.charAt(0).toUpperCase()}</div>
+                  )}
+                  <div>
+                    <div style={styles.reportTitle}>{profile.name}</div>
+                    <div style={styles.tutorialSubtitle}>Upload a profile image to personalize your training dashboard and report.</div>
+                  </div>
+                </div>
+                <div style={{ marginTop: 14 }}>
+                  <label style={styles.label} htmlFor="profile-photo">
+                    Profile photo
+                  </label>
+                  <input id="profile-photo" type="file" accept="image/*" onChange={handlePhotoUpload} style={styles.input} />
+                </div>
+              </div>
+            </div>
             <div style={formGridStyle}>
               <div>
                 <label style={styles.label} htmlFor="name">
@@ -1536,12 +1718,131 @@ export default function FitnessApp() {
               <button style={styles.secondaryButton} onClick={exportProgress}>
                 Export backup
               </button>
+              <button style={styles.secondaryButton} onClick={triggerBackupImport}>
+                Import backup
+              </button>
+              <button style={styles.secondaryButton} onClick={exportAsPdf}>
+                Export as PDF / Share report
+              </button>
               <button style={styles.secondaryButton} onClick={clearProgress}>
                 Clear saved progress
               </button>
             </div>
+            <input
+              ref={backupInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={handleBackupImport}
+              style={{ display: "none" }}
+            />
             <div style={{ marginTop: 16, color: textMuted, fontSize: 13, lineHeight: 1.7 }}>
-              Saved locally on this browser. Clearing progress removes workout history and summary stats, but keeps your profile defaults in the form.
+              Saved locally on this browser. Use Export backup to download your data and Import backup to restore it later. Clearing progress removes workout history and summary stats, but keeps your profile defaults in the form.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "report" && (
+        <div style={sectionStyle}>
+          <div style={styles.card}>
+            <div className="no-print" style={styles.buttonRow}>
+              <button style={styles.primaryButton} onClick={exportAsPdf}>
+                Print / Save as PDF
+              </button>
+              <button style={styles.secondaryButton} onClick={exportProgress}>
+                Download JSON backup
+              </button>
+              <button style={styles.secondaryButton} onClick={triggerBackupImport}>
+                Import JSON backup
+              </button>
+            </div>
+
+            <div style={styles.reportGrid}>
+              <div style={styles.reportHero}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt={`${profile.name}'s report photo`} style={styles.avatar} />
+                  ) : (
+                    <div style={styles.avatarFallback}>{profile.name.charAt(0).toUpperCase()}</div>
+                  )}
+                  <div>
+                    <div style={styles.sectionTitle}>Workout Report</div>
+                    <div style={styles.reportTitle}>{profile.name}</div>
+                    <div style={styles.tutorialSubtitle}>A compact report you can print to PDF or share with someone else.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={dashboardGridStyle}>
+                <div style={styles.reportCard}>
+                  <div style={styles.reportLabel}>Profile</div>
+                  <div style={styles.reportValue}>{profile.goal}</div>
+                  <div style={{ marginTop: 10, color: textMuted, fontSize: 13, lineHeight: 1.7 }}>
+                    Weight: {profile.weight} kg · Height: {profile.height} cm · Sessions/week: {profile.sessionsPerWeek} · Training type: {profile.workoutType}
+                  </div>
+                </div>
+                <div style={styles.reportCard}>
+                  <div style={styles.reportLabel}>Progress</div>
+                  <div style={styles.reportValue}>{sessionSummary.totalSessions} workouts</div>
+                  <div style={{ marginTop: 10, color: textMuted, fontSize: 13, lineHeight: 1.7 }}>
+                    {sessionSummary.totalMinutes} minutes · {sessionSummary.totalCalories} kcal burned · {streakDays || sessionSummary.streakDays} day streak
+                  </div>
+                </div>
+              </div>
+
+              <div style={styles.reportCard}>
+                <div style={styles.reportLabel}>Weekly momentum</div>
+                <div style={{ color: textMuted, fontSize: 13, lineHeight: 1.7, marginBottom: 10 }}>
+                  {weeklyAnalytics.totalSessions} sessions this week · {weeklyAnalytics.totalMinutes} min · {weeklyAnalytics.totalCalories} kcal
+                </div>
+                <div style={weeklyBarsStyle}>
+                  {weeklyAnalytics.days.map((day) => (
+                    <div key={day.key} style={styles.weeklyBarCard}>
+                      <div style={styles.weeklyBarMeta}>{day.label}</div>
+                      <div style={styles.weeklyBarTrack}>
+                        <div style={{ ...styles.weeklyBarFill, height: `${Math.max(18, (day.calories / weeklyAnalytics.maxCalories) * 100)}%` }} />
+                      </div>
+                      <div style={{ color: textMuted, fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>
+                        {day.sessions} session{day.sessions === 1 ? "" : "s"} · {day.minutes} min · {day.calories} kcal
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={styles.reportCard}>
+                <div style={styles.reportLabel}>Recent sessions</div>
+                {workoutHistory.length === 0 ? (
+                  <div style={{ color: textMuted, fontSize: 13, lineHeight: 1.7 }}>No completed sessions yet.</div>
+                ) : (
+                  workoutHistory.map((session) => (
+                    <div key={session.id} style={{ ...styles.mealCard, marginBottom: 10 }}>
+                      <div style={styles.mealTitle}>
+                        <span>🏋️</span>
+                        <span>{session.focus}</span>
+                        <span style={styles.mealTime}>{formatDate(session.endedAt ?? session.startedAt)}</span>
+                      </div>
+                      <div style={splitGridStyle}>
+                        <div>
+                          <div style={styles.metaKey}>Duration</div>
+                          <div style={styles.metaVal}>{secondsToClock(session.elapsedSeconds)}</div>
+                        </div>
+                        <div>
+                          <div style={styles.metaKey}>Calories</div>
+                          <div style={styles.metaVal}>{session.caloriesBurned} kcal</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div style={styles.reportCard}>
+                <div style={styles.reportLabel}>Summary notes</div>
+                <div style={{ color: textMuted, fontSize: 13, lineHeight: 1.8 }}>
+                  Target calories: {targetCalories} kcal. Protein target: {protein}g/day. Use this report as a quick snapshot of the current plan, recent training load, and local progress stored in this browser.
+                </div>
+              </div>
             </div>
           </div>
         </div>
