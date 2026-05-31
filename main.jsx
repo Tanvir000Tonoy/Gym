@@ -86,10 +86,17 @@ const defaultProfile = {
   age: 22,
   weight: 56,
   height: 162,
-  goal: "Lean bulk",
+  goal: "Weight gain",
+  goalType: "gain",
   sessionsPerWeek: 5,
   workoutType: "strength",
 };
+
+const goalOptions = [
+  { value: "gain", label: "Weight gain" },
+  { value: "loss", label: "Weight loss" },
+  { value: "recomp", label: "Recomposition" },
+];
 
 const defaultWorkoutDays = [
   {
@@ -158,6 +165,195 @@ const defaultWorkoutDays = [
     ],
   },
 ];
+
+const weightLossWorkoutDays = [
+  {
+    id: "loss-circuit-a",
+    day: "Day 1",
+    focus: "Fat-Loss Circuit A",
+    tag: "HIIT",
+    exercises: [
+      { name: "Jump Rope Intervals", sets: "5 × 60 sec", calories: 48 },
+      { name: "Burpees", sets: "4 × 12", calories: 42 },
+      { name: "Mountain Climbers", sets: "4 × 40 sec", calories: 34 },
+      { name: "Plank", sets: "3 × 60 sec", calories: 14 },
+      { name: "Dumbbell Lunges", sets: "3 × 14 each leg", calories: 32 },
+    ],
+  },
+  {
+    id: "loss-upper",
+    day: "Day 2",
+    focus: "Upper Body + Cardio",
+    tag: "Upper",
+    exercises: [
+      { name: "Incline Dumbbell Press", sets: "3 × 12", calories: 36 },
+      { name: "Lat Pulldown", sets: "3 × 12", calories: 32 },
+      { name: "Seated Cable Row", sets: "3 × 12", calories: 28 },
+      { name: "Jump Rope Intervals", sets: "4 × 60 sec", calories: 38 },
+      { name: "Mountain Climbers", sets: "3 × 45 sec", calories: 30 },
+    ],
+  },
+  {
+    id: "loss-lower",
+    day: "Day 3",
+    focus: "Lower Body Conditioning",
+    tag: "Lower",
+    exercises: [
+      { name: "Barbell Squat", sets: "3 × 10", calories: 52 },
+      { name: "Romanian Deadlift", sets: "3 × 12", calories: 38 },
+      { name: "Leg Press", sets: "3 × 15", calories: 34 },
+      { name: "Treadmill Incline Walk", sets: "3 × 10 min", calories: 54 },
+      { name: "Plank", sets: "3 × 60 sec", calories: 14 },
+    ],
+  },
+  {
+    id: "loss-circuit-b",
+    day: "Day 4",
+    focus: "Fat-Loss Circuit B",
+    tag: "Circuit",
+    exercises: [
+      { name: "Burpees", sets: "4 × 10", calories: 38 },
+      { name: "Cable Chest Fly", sets: "3 × 15", calories: 24 },
+      { name: "Lateral Raise", sets: "3 × 18", calories: 18 },
+      { name: "Jump Rope Intervals", sets: "4 × 75 sec", calories: 42 },
+      { name: "Mountain Climbers", sets: "3 × 45 sec", calories: 30 },
+    ],
+  },
+  {
+    id: "loss-full",
+    day: "Day 5",
+    focus: "Full Body Burn",
+    tag: "Full",
+    exercises: [
+      { name: "Pull-Ups / Assisted Pull-Ups", sets: "3 × max reps", calories: 38 },
+      { name: "Dumbbell Lunges", sets: "3 × 12 each leg", calories: 30 },
+      { name: "Treadmill Incline Walk", sets: "3 × 12 min", calories: 62 },
+      { name: "Plank", sets: "4 × 45 sec", calories: 16 },
+      { name: "Burpees", sets: "3 × 12", calories: 34 },
+    ],
+  },
+];
+
+const recompositionWorkoutDays = [
+  {
+    id: "recomp-upper-a",
+    day: "Day 1",
+    focus: "Upper Body A",
+    tag: "Upper",
+    exercises: [
+      { name: "Barbell Bench Press", sets: "4 × 6–8", calories: 50 },
+      { name: "Lat Pulldown", sets: "4 × 10", calories: 34 },
+      { name: "Seated DB Shoulder Press", sets: "3 × 10", calories: 30 },
+      { name: "Barbell Curl", sets: "3 × 12", calories: 18 },
+      { name: "Tricep Rope Pushdown", sets: "3 × 12", calories: 20 },
+    ],
+  },
+  {
+    id: "recomp-lower-a",
+    day: "Day 2",
+    focus: "Lower Body A",
+    tag: "Lower",
+    exercises: [
+      { name: "Barbell Squat", sets: "4 × 6–8", calories: 56 },
+      { name: "Romanian Deadlift", sets: "3 × 10", calories: 40 },
+      { name: "Leg Press", sets: "3 × 12", calories: 32 },
+      { name: "Leg Curl (Machine)", sets: "3 × 12", calories: 22 },
+      { name: "Plank", sets: "3 × 60 sec", calories: 14 },
+    ],
+  },
+  {
+    id: "recomp-metcon",
+    day: "Day 3",
+    focus: "Conditioning",
+    tag: "Hybrid",
+    exercises: [
+      { name: "Jump Rope Intervals", sets: "5 × 60 sec", calories: 48 },
+      { name: "Mountain Climbers", sets: "4 × 40 sec", calories: 34 },
+      { name: "Burpees", sets: "4 × 10", calories: 36 },
+      { name: "Pull-Ups / Assisted Pull-Ups", sets: "3 × max reps", calories: 38 },
+      { name: "Plank", sets: "3 × 60 sec", calories: 14 },
+    ],
+  },
+  {
+    id: "recomp-upper-b",
+    day: "Day 4",
+    focus: "Upper Body B",
+    tag: "Upper",
+    exercises: [
+      { name: "Incline Dumbbell Press", sets: "4 × 8–10", calories: 38 },
+      { name: "Seated Cable Row", sets: "4 × 10", calories: 30 },
+      { name: "Lateral Raise", sets: "4 × 15", calories: 18 },
+      { name: "EZ-Bar Curl", sets: "3 × 12", calories: 16 },
+      { name: "Skull Crusher", sets: "3 × 12", calories: 16 },
+    ],
+  },
+  {
+    id: "recomp-lower-b",
+    day: "Day 5",
+    focus: "Lower Body B",
+    tag: "Lower",
+    exercises: [
+      { name: "Deadlift", sets: "4 × 5", calories: 54 },
+      { name: "Dumbbell Lunges", sets: "3 × 12 each leg", calories: 30 },
+      { name: "Calf Raise", sets: "4 × 20", calories: 16 },
+      { name: "Treadmill Incline Walk", sets: "3 × 10 min", calories: 54 },
+      { name: "Plank", sets: "3 × 60 sec", calories: 14 },
+    ],
+  },
+];
+
+const workoutDaysByGoalType = {
+  gain: defaultWorkoutDays,
+  loss: weightLossWorkoutDays,
+  recomp: recompositionWorkoutDays,
+};
+
+const inferGoalTypeFromGoalText = (goalText) => {
+  const goal = String(goalText ?? "").toLowerCase();
+  if (goal.includes("loss") || goal.includes("fat") || goal.includes("cut")) {
+    return "loss";
+  }
+  if (goal.includes("recomp") || goal.includes("maintain")) {
+    return "recomp";
+  }
+  return "gain";
+};
+
+const getGoalLabel = (goalType) => goalOptions.find((option) => option.value === goalType)?.label ?? "Weight gain";
+
+const getWorkoutDaysForGoalType = (goalType) => workoutDaysByGoalType[goalType] ?? defaultWorkoutDays;
+
+const allWorkoutDays = Object.values(workoutDaysByGoalType).flat();
+
+const recommendedSessionsByGoalType = {
+  gain: 5,
+  loss: 4,
+  recomp: 4,
+};
+
+const recommendedWorkoutTypeByGoalType = {
+  gain: "strength",
+  loss: "cardio",
+  recomp: "mixed",
+};
+
+const getRecommendedPlanForGoal = (goalType, availableDaysCount) => ({
+  sessionsPerWeek: Math.min(
+    Math.max(1, recommendedSessionsByGoalType[goalType] ?? availableDaysCount),
+    availableDaysCount
+  ),
+  workoutType: recommendedWorkoutTypeByGoalType[goalType] ?? "mixed",
+});
+
+const getRecommendedDayFromSplit = (days) => {
+  if (!Array.isArray(days) || days.length === 0) {
+    return null;
+  }
+
+  // Monday-first rotation; loops within available split days.
+  const mondayFirstIndex = (new Date().getDay() + 6) % 7;
+  return days[mondayFirstIndex % days.length];
+};
 
 const exerciseTutorials = {
   "Barbell Bench Press": {
@@ -259,6 +455,22 @@ const exerciseTutorials = {
   "Calf Raise": {
     videoQuery: "Calf Raise tutorial",
     steps: ["Use a full stretch at the bottom.", "Drive up onto the balls of your feet.", "Pause at the top and lower slowly."],
+  },
+  "Jump Rope Intervals": {
+    videoQuery: "Jump Rope Intervals tutorial",
+    steps: ["Keep elbows close and rotate from your wrists.", "Stay light on your feet and breathe rhythmically.", "Use work-rest intervals and maintain a steady cadence."],
+  },
+  "Mountain Climbers": {
+    videoQuery: "Mountain Climbers tutorial",
+    steps: ["Start in a strong plank with shoulders over wrists.", "Drive knees toward chest one at a time without bouncing hips.", "Keep core braced and pace consistent."],
+  },
+  Burpees: {
+    videoQuery: "Burpees exercise tutorial",
+    steps: ["Drop into a squat and place hands on the floor.", "Kick feet back to plank, then return to squat.", "Jump up softly and repeat with control."],
+  },
+  "Treadmill Incline Walk": {
+    videoQuery: "Treadmill Incline Walk technique",
+    steps: ["Set an incline you can maintain with good posture.", "Keep a natural arm swing and avoid leaning on rails.", "Walk at a brisk pace with controlled breathing."],
   },
 };
 
@@ -950,14 +1162,14 @@ const buildWeeklyAnalytics = (sessionsList) => {
 };
 
 const getNutritionSuggestions = (profile, targetCalories) => {
-  const goal = (profile.goal || "").toLowerCase();
+  const goalType = profile.goalType ?? inferGoalTypeFromGoalText(profile.goal);
   const suggestions = [];
 
-  if (goal.includes("bulk") || goal.includes("gain") || goal.includes("mass")) {
+  if (goalType === "gain") {
     suggestions.push(`Aim for a ~250 kcal daily surplus (target ~${targetCalories} kcal).`);
     suggestions.push("Prioritise ~2.0–2.4 g protein per kg bodyweight to support muscle growth.");
     suggestions.push("Focus carbs around training and include whole-food calorie-dense options: oats, rice, nuts, whole-milk yogurt.");
-  } else if (goal.includes("cut") || goal.includes("lose") || goal.includes("fat")) {
+  } else if (goalType === "loss") {
     suggestions.push(`Create a modest calorie deficit while keeping protein high (~2.0–2.4 g/kg).`);
     suggestions.push("Prefer high-volume vegetables, lean protein, and time carbs around workouts to preserve performance.");
     suggestions.push("Track progress weekly and avoid drops >0.7–1% bodyweight per week.");
@@ -969,6 +1181,25 @@ const getNutritionSuggestions = (profile, targetCalories) => {
 
   suggestions.push("Sample high-protein choices: eggs, chicken breast, Greek yogurt, cottage cheese, lentils.");
   return suggestions;
+};
+
+const getPlannedSetCount = (setLabel) => {
+  const parsed = Number.parseInt(String(setLabel ?? "").match(/\d+/)?.[0] ?? "1", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+};
+
+const getCompletedSetsForExercise = (session, exerciseName, plannedSets) => {
+  const fromSetMap = session?.completedSetsByExercise?.[exerciseName];
+  if (typeof fromSetMap === "number" && Number.isFinite(fromSetMap)) {
+    return Math.max(0, Math.min(plannedSets, fromSetMap));
+  }
+
+  // Backward compatibility for old session shape where exercises were only checked on/off.
+  if (Array.isArray(session?.completedExerciseIds) && session.completedExerciseIds.includes(exerciseName)) {
+    return plannedSets;
+  }
+
+  return 0;
 };
 
 const downloadJson = (filename, data) => {
@@ -1009,11 +1240,14 @@ const createSession = (day, profile) => {
     elapsedSeconds: 0,
     caloriesBurned: 0,
     completedExerciseIds: [],
+    completedSetsByExercise: {},
+    repsLogByExercise: {},
     notes: "",
     profileSnapshot: {
       name: profile.name,
       weight: profile.weight,
       workoutType: profile.workoutType,
+      goalType: profile.goalType ?? inferGoalTypeFromGoalText(profile.goal),
     },
   };
 };
@@ -1065,6 +1299,8 @@ const defaultSplashState = true;
 
 export default function FitnessApp() {
   const storedState = loadState();
+  const initialGoalType = storedState?.profile?.goalType ?? inferGoalTypeFromGoalText(storedState?.profile?.goal ?? defaultProfile.goal);
+  const initialWorkoutDays = getWorkoutDaysForGoalType(initialGoalType);
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 0 : window.innerWidth));
   const [activeTab, setActiveTab] = useState("dashboard");
   const [expandedDay, setExpandedDay] = useState(0);
@@ -1073,15 +1309,15 @@ export default function FitnessApp() {
   const [sessions, setSessions] = useState(storedState?.sessions ?? []);
   const [sessionSummary, setSessionSummary] = useState(storedState?.summary ?? defaultSessionSummary);
   const [activeSession, setActiveSession] = useState(storedState?.activeSession ?? null);
-  const [selectedDayId, setSelectedDayId] = useState(storedState?.selectedDayId ?? defaultWorkoutDays[0].id);
+  const [selectedDayId, setSelectedDayId] = useState(storedState?.selectedDayId ?? initialWorkoutDays[0].id);
   const [sessionNotes, setSessionNotes] = useState("");
   const [customName, setCustomName] = useState(profile.name);
   const [customWeight, setCustomWeight] = useState(String(profile.weight));
   const [customHeight, setCustomHeight] = useState(String(profile.height));
-  const [customGoal, setCustomGoal] = useState(profile.goal);
+  const [customGoalType, setCustomGoalType] = useState(profile.goalType ?? inferGoalTypeFromGoalText(profile.goal));
   const [customSessionsPerWeek, setCustomSessionsPerWeek] = useState(String(profile.sessionsPerWeek));
   const [customWorkoutType, setCustomWorkoutType] = useState(profile.workoutType);
-  const [selectedExerciseName, setSelectedExerciseName] = useState(defaultWorkoutDays[0].exercises[0].name);
+  const [selectedExerciseName, setSelectedExerciseName] = useState(initialWorkoutDays[0].exercises[0].name);
   const [backupFileName, setBackupFileName] = useState("No file chosen");
   const [profilePhotoFileName, setProfilePhotoFileName] = useState("No image chosen");
   const tickRef = useRef(null);
@@ -1091,7 +1327,14 @@ export default function FitnessApp() {
   const [themeKey, setThemeKey] = useState(storedState?.themeKey ?? defaultThemeKey);
   const [hideSplash, setHideSplash] = useState(storedState?.hideSplash ?? false);
   const [showSplash, setShowSplash] = useState(storedState?.hideSplash ? false : defaultSplashState);
+  const [autoPlanEnabled, setAutoPlanEnabled] = useState(storedState?.autoPlanEnabled ?? false);
   const theme = themeOptions[themeKey] ?? themeOptions[defaultThemeKey];
+  const activeGoalType = profile.goalType ?? inferGoalTypeFromGoalText(profile.goal);
+  const goalWorkoutDays = getWorkoutDaysForGoalType(activeGoalType);
+  const sessionsPerWeekTarget = Math.min(Math.max(1, Number(profile.sessionsPerWeek) || 1), goalWorkoutDays.length);
+  const workoutDays = goalWorkoutDays.slice(0, sessionsPerWeekTarget);
+  const workoutDayIds = workoutDays.map((day) => day.id).join("|");
+  const recommendedDay = getRecommendedDayFromSplit(workoutDays) ?? workoutDays[0];
 
   const themeStyles = {
     "--bg": theme.vars["--bg"],
@@ -1146,9 +1389,19 @@ export default function FitnessApp() {
 
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ profile, profilePhoto, sessions, summary: sessionSummary, activeSession, selectedDayId, themeKey, hideSplash })
+      JSON.stringify({
+        profile,
+        profilePhoto,
+        sessions,
+        summary: sessionSummary,
+        activeSession,
+        selectedDayId,
+        themeKey,
+        hideSplash,
+        autoPlanEnabled,
+      })
     );
-  }, [profile, profilePhoto, sessions, sessionSummary, activeSession, selectedDayId, themeKey, hideSplash]);
+  }, [profile, profilePhoto, sessions, sessionSummary, activeSession, selectedDayId, themeKey, hideSplash, autoPlanEnabled]);
 
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth);
@@ -1164,12 +1417,21 @@ export default function FitnessApp() {
   }, []);
 
   useEffect(() => {
-    const currentDay = defaultWorkoutDays.find((day) => day.id === selectedDayId) ?? defaultWorkoutDays[0];
+    const currentDay = workoutDays.find((day) => day.id === selectedDayId) ?? workoutDays[0];
+    if (!currentDay) {
+      return;
+    }
+
+    if (currentDay.id !== selectedDayId) {
+      setSelectedDayId(currentDay.id);
+      return;
+    }
+
     const currentExerciseExists = currentDay.exercises.some((exercise) => exercise.name === selectedExerciseName);
     if (!currentExerciseExists) {
       setSelectedExerciseName(currentDay.exercises[0].name);
     }
-  }, [selectedDayId, selectedExerciseName]);
+  }, [selectedDayId, selectedExerciseName, workoutDayIds]);
 
   const bmi = calculateBmi(profile.weight, profile.height);
   const tdee = getTdee(profile);
@@ -1177,17 +1439,44 @@ export default function FitnessApp() {
   const protein = Math.round(profile.weight * 2.2);
   const carbs = Math.round((targetCalories * 0.45) / 4);
   const fats = Math.round((targetCalories * 0.25) / 9);
-  const activeDay = defaultWorkoutDays.find((day) => day.id === selectedDayId) ?? defaultWorkoutDays[0];
+  const activeDay = workoutDays.find((day) => day.id === selectedDayId) ?? workoutDays[0];
+  const sessionDay = activeSession
+    ? allWorkoutDays.find((day) => day.id === activeSession.dayId) ?? activeDay
+    : activeDay;
   const weeklyAnalytics = buildWeeklyAnalytics(sessions);
   const streakDays = calculateStreakDays(sessions);
-  const selectedExercise = exerciseTutorials[selectedExerciseName] ?? exerciseTutorials[activeDay.exercises[0].name];
+  const fallbackTutorial = {
+    videoQuery: `${selectedExerciseName || "exercise"} tutorial`,
+    steps: [
+      "Set up with stable posture and brace your core.",
+      "Move through a controlled full range of motion.",
+      "Keep tempo consistent and stop the set before form breaks.",
+    ],
+  };
+  const selectedExercise =
+    exerciseTutorials[selectedExerciseName] ??
+    exerciseTutorials[activeDay.exercises[0].name] ??
+    fallbackTutorial;
+  const weeklySessionTarget = Math.min(Math.max(1, Number(profile.sessionsPerWeek) || 1), workoutDays.length);
+  const weeklySessionDone = Math.min(weeklyAnalytics.totalSessions, weeklySessionTarget);
 
   const totalExercisesDone = sessions.reduce((sum, session) => sum + session.completedExerciseIds.length, 0);
   const currentDuration = activeSession?.elapsedSeconds ?? 0;
   const currentCalories = activeSession?.caloriesBurned ?? 0;
-  const completionRate = activeSession
-    ? Math.round((activeSession.completedExerciseIds.length / activeDay.exercises.length) * 100)
+  const completionTargetCount = sessionDay.exercises.reduce((sum, exercise) => sum + getPlannedSetCount(exercise.sets), 0);
+  const activeCompletedSets = activeSession
+    ? sessionDay.exercises.reduce(
+        (sum, exercise) => sum + getCompletedSetsForExercise(activeSession, exercise.name, getPlannedSetCount(exercise.sets)),
+        0
+      )
     : 0;
+  const totalRepsLogged = activeSession
+    ? Object.values(activeSession.repsLogByExercise ?? {}).reduce(
+        (sum, repsList) => sum + (Array.isArray(repsList) ? repsList.reduce((acc, reps) => acc + (Number.isFinite(reps) ? reps : 0), 0) : 0),
+        0
+      )
+    : 0;
+  const completionRate = activeSession && completionTargetCount > 0 ? Math.round((activeCompletedSets / completionTargetCount) * 100) : 0;
 
   const beginSession = () => {
     if (activeSession) {
@@ -1207,18 +1496,91 @@ export default function FitnessApp() {
     setActiveSession((current) => (current ? { ...current, isPaused: false } : current));
   };
 
-  const toggleExerciseDone = (exerciseName) => {
+  const markSetDone = (exercise) => {
+    if (!activeSession) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Did you complete one set of ${exercise.name}?`);
+    if (!confirmed) {
+      return;
+    }
+
+    const repsInput = window.prompt(`How many reps did you complete for this set of ${exercise.name}? (optional)`, "");
+    const parsedReps = Number.parseInt(String(repsInput ?? "").trim(), 10);
+    const repsValue = Number.isFinite(parsedReps) && parsedReps > 0 ? parsedReps : null;
+
     setActiveSession((current) => {
       if (!current) {
         return current;
       }
 
-      const isCompleted = current.completedExerciseIds.includes(exerciseName);
+      const plannedSets = getPlannedSetCount(exercise.sets);
+      const previousSets = getCompletedSetsForExercise(current, exercise.name, plannedSets);
+      if (previousSets >= plannedSets) {
+        return current;
+      }
+
+      const nextSets = previousSets + 1;
+      const existingReps = Array.isArray(current.repsLogByExercise?.[exercise.name]) ? current.repsLogByExercise[exercise.name] : [];
+      const nextReps = repsValue ? [...existingReps, repsValue] : existingReps;
+
+      const completedIds = new Set(current.completedExerciseIds ?? []);
+      if (nextSets >= plannedSets) {
+        completedIds.add(exercise.name);
+      }
+
       return {
         ...current,
-        completedExerciseIds: isCompleted
-          ? current.completedExerciseIds.filter((item) => item !== exerciseName)
-          : [...current.completedExerciseIds, exerciseName],
+        completedExerciseIds: [...completedIds],
+        completedSetsByExercise: {
+          ...(current.completedSetsByExercise ?? {}),
+          [exercise.name]: nextSets,
+        },
+        repsLogByExercise: {
+          ...(current.repsLogByExercise ?? {}),
+          [exercise.name]: nextReps,
+        },
+      };
+    });
+  };
+
+  const undoSetDone = (exercise) => {
+    if (!activeSession) {
+      return;
+    }
+
+    setActiveSession((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const plannedSets = getPlannedSetCount(exercise.sets);
+      const previousSets = getCompletedSetsForExercise(current, exercise.name, plannedSets);
+      if (previousSets <= 0) {
+        return current;
+      }
+
+      const nextSets = previousSets - 1;
+      const existingReps = Array.isArray(current.repsLogByExercise?.[exercise.name]) ? current.repsLogByExercise[exercise.name] : [];
+      const nextReps = existingReps.length ? existingReps.slice(0, -1) : existingReps;
+
+      const completedIds = new Set(current.completedExerciseIds ?? []);
+      if (nextSets < plannedSets) {
+        completedIds.delete(exercise.name);
+      }
+
+      return {
+        ...current,
+        completedExerciseIds: [...completedIds],
+        completedSetsByExercise: {
+          ...(current.completedSetsByExercise ?? {}),
+          [exercise.name]: nextSets,
+        },
+        repsLogByExercise: {
+          ...(current.repsLogByExercise ?? {}),
+          [exercise.name]: nextReps,
+        },
       };
     });
   };
@@ -1229,11 +1591,26 @@ export default function FitnessApp() {
     }
 
     const endedAt = new Date().toISOString();
+    const performedDay = allWorkoutDays.find((day) => day.id === activeSession.dayId) ?? activeDay;
+    const exercisePerformance = performedDay.exercises.map((exercise) => {
+      const plannedSets = getPlannedSetCount(exercise.sets);
+      const completedSets = getCompletedSetsForExercise(activeSession, exercise.name, plannedSets);
+      const repsLog = Array.isArray(activeSession.repsLogByExercise?.[exercise.name]) ? activeSession.repsLogByExercise[exercise.name] : [];
+      return {
+        name: exercise.name,
+        setScheme: exercise.sets,
+        plannedSets,
+        completedSets,
+        repsLog,
+      };
+    });
+
     const completedSession = {
       ...activeSession,
       endedAt,
       elapsedSeconds: Math.max(0, activeSession.elapsedSeconds),
       caloriesBurned: estimateCaloriesBurned(activeSession.elapsedSeconds, profile.weight, profile.workoutType),
+      exercisePerformance,
       notes: sessionNotes,
       isPaused: false,
     };
@@ -1251,15 +1628,28 @@ export default function FitnessApp() {
   };
 
   const saveProfile = () => {
+    const planDays = getWorkoutDaysForGoalType(customGoalType);
+    const recommended = getRecommendedPlanForGoal(customGoalType, planDays.length);
+    const parsedSessions = Number(customSessionsPerWeek) || defaultProfile.sessionsPerWeek;
+    const clampedSessions = autoPlanEnabled
+      ? recommended.sessionsPerWeek
+      : Math.min(Math.max(1, parsedSessions), planDays.length);
+    const nextWorkoutType = autoPlanEnabled ? recommended.workoutType : customWorkoutType;
     const nextProfile = {
       name: customName.trim() || defaultProfile.name,
       age: defaultProfile.age,
       weight: Number(customWeight) || defaultProfile.weight,
       height: Number(customHeight) || defaultProfile.height,
-      goal: customGoal.trim() || defaultProfile.goal,
-      sessionsPerWeek: Number(customSessionsPerWeek) || defaultProfile.sessionsPerWeek,
-      workoutType: customWorkoutType,
+      goalType: customGoalType,
+      goal: getGoalLabel(customGoalType),
+      sessionsPerWeek: clampedSessions,
+      workoutType: nextWorkoutType,
     };
+
+    if (autoPlanEnabled) {
+      setCustomSessionsPerWeek(String(clampedSessions));
+      setCustomWorkoutType(nextWorkoutType);
+    }
 
     setProfile(nextProfile);
     if (activeSession) {
@@ -1271,6 +1661,7 @@ export default function FitnessApp() {
                 name: nextProfile.name,
                 weight: nextProfile.weight,
                 workoutType: nextProfile.workoutType,
+                goalType: nextProfile.goalType,
               },
             }
           : current
@@ -1294,6 +1685,7 @@ export default function FitnessApp() {
       selectedDayId,
       themeKey,
       hideSplash,
+      autoPlanEnabled,
       exportedAt: new Date().toISOString(),
     });
   };
@@ -1306,6 +1698,47 @@ export default function FitnessApp() {
   const applyTheme = (nextThemeKey) => {
     setThemeKey(nextThemeKey);
   };
+
+  const applyAutoGeneratedPlan = (goalTypeValue, syncProfile = false) => {
+    const templateDays = getWorkoutDaysForGoalType(goalTypeValue);
+    const recommended = getRecommendedPlanForGoal(goalTypeValue, templateDays.length);
+    const generatedDays = templateDays.slice(0, recommended.sessionsPerWeek);
+    const suggestedDay = getRecommendedDayFromSplit(generatedDays) ?? generatedDays[0];
+
+    setCustomSessionsPerWeek(String(recommended.sessionsPerWeek));
+    setCustomWorkoutType(recommended.workoutType);
+
+    if (syncProfile) {
+      setProfile((current) => ({
+        ...current,
+        goalType: goalTypeValue,
+        goal: getGoalLabel(goalTypeValue),
+        sessionsPerWeek: recommended.sessionsPerWeek,
+        workoutType: recommended.workoutType,
+      }));
+    }
+
+    if (suggestedDay) {
+      setSelectedDayId(suggestedDay.id);
+      setSelectedExerciseName(suggestedDay.exercises[0].name);
+    }
+  };
+
+  const toggleAutoPlan = () => {
+    const nextEnabled = !autoPlanEnabled;
+    setAutoPlanEnabled(nextEnabled);
+    if (nextEnabled) {
+      applyAutoGeneratedPlan(customGoalType, true);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoPlanEnabled) {
+      return;
+    }
+
+    applyAutoGeneratedPlan(customGoalType, true);
+  }, [autoPlanEnabled, customGoalType]);
 
   const handlePhotoUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -1342,21 +1775,29 @@ export default function FitnessApp() {
       }
 
       const nextProfile = imported.profile ?? defaultProfile;
-      setProfile(nextProfile);
-      setCustomName(nextProfile.name ?? defaultProfile.name);
-      setCustomWeight(String(nextProfile.weight ?? defaultProfile.weight));
-      setCustomHeight(String(nextProfile.height ?? defaultProfile.height));
-      setCustomGoal(nextProfile.goal ?? defaultProfile.goal);
-      setCustomSessionsPerWeek(String(nextProfile.sessionsPerWeek ?? defaultProfile.sessionsPerWeek));
-      setCustomWorkoutType(nextProfile.workoutType ?? defaultProfile.workoutType);
+      const restoredGoalType = nextProfile.goalType ?? inferGoalTypeFromGoalText(nextProfile.goal);
+      const normalizedProfile = {
+        ...nextProfile,
+        goalType: restoredGoalType,
+        goal: nextProfile.goal ?? getGoalLabel(restoredGoalType),
+      };
+      const restoredDays = getWorkoutDaysForGoalType(restoredGoalType);
+      setProfile(normalizedProfile);
+      setCustomName(normalizedProfile.name ?? defaultProfile.name);
+      setCustomWeight(String(normalizedProfile.weight ?? defaultProfile.weight));
+      setCustomHeight(String(normalizedProfile.height ?? defaultProfile.height));
+      setCustomGoalType(restoredGoalType);
+      setCustomSessionsPerWeek(String(normalizedProfile.sessionsPerWeek ?? defaultProfile.sessionsPerWeek));
+      setCustomWorkoutType(normalizedProfile.workoutType ?? defaultProfile.workoutType);
 
       setProfilePhoto(imported.profilePhoto ?? "");
       setProfilePhotoFileName(imported.profilePhoto ? "Restored from backup" : "No image chosen");
       setSessions(Array.isArray(imported.sessions) ? imported.sessions : []);
       setSessionSummary(imported.summary ?? defaultSessionSummary);
-      setSelectedDayId(imported.selectedDayId ?? defaultWorkoutDays[0].id);
+      setSelectedDayId(imported.selectedDayId ?? restoredDays[0].id);
       setThemeKey(imported.themeKey ?? defaultThemeKey);
       setHideSplash(Boolean(imported.hideSplash));
+      setAutoPlanEnabled(Boolean(imported.autoPlanEnabled));
       setActiveSession(null);
       setSessionNotes("");
       setBackupFileName(file.name);
@@ -1523,6 +1964,9 @@ export default function FitnessApp() {
               <div style={{ color: textMuted, fontSize: 13, lineHeight: 1.6 }}>
                 Start a live workout, track elapsed time, and save your completed session with calories burned.
               </div>
+              <div style={{ color: textMuted, fontSize: 12, marginTop: 8 }}>
+                Recommended today: <b style={{ color: accent }}>{recommendedDay?.focus ?? activeDay.focus}</b>
+              </div>
               <div style={styles.buttonRow}>
                 <button style={styles.primaryButton} onClick={beginSession} disabled={Boolean(activeSession)}>
                   {activeSession ? "Session running" : "Start workout"}
@@ -1530,30 +1974,43 @@ export default function FitnessApp() {
                 <button style={styles.secondaryButton} onClick={() => setActiveTab("workout")}>
                   Open workout
                 </button>
+                <button
+                  style={styles.secondaryButton}
+                  onClick={() => {
+                    if (!recommendedDay) {
+                      return;
+                    }
+                    setSelectedDayId(recommendedDay.id);
+                    setSelectedExerciseName(recommendedDay.exercises[0].name);
+                    setActiveTab("workout");
+                  }}
+                >
+                  Go to today&apos;s plan
+                </button>
               </div>
             </div>
 
             <div style={styles.card}>
               <div style={styles.sectionTitle}>Progress</div>
-              <div style={macroGridStyle}>
+              <div style={{ ...styles.macroGrid, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
                 {[
                   { key: "Workouts", val: sessionSummary.totalSessions, unit: "sessions" },
                   { key: "Minutes", val: sessionSummary.totalMinutes, unit: "min" },
                   { key: "Calories", val: sessionSummary.totalCalories, unit: "kcal" },
                   { key: "Streak", val: streakDays || sessionSummary.streakDays, unit: "days" },
                 ].map((stat) => (
-                  <div key={stat.key} style={styles.macroCard}>
-                    <div style={styles.macroVal}>
+                  <div key={stat.key} style={{ ...styles.macroCard, padding: "14px 12px", minWidth: 0 }}>
+                    <div style={{ ...styles.macroVal, fontSize: 24, lineHeight: 1.05, overflowWrap: "anywhere" }}>
                       {stat.val}
-                      <span style={{ fontSize: 14, color: textMuted }}> {stat.unit}</span>
+                      <span style={{ display: "block", fontSize: 11, color: textMuted, marginTop: 4, letterSpacing: 1 }}>{stat.unit}</span>
                     </div>
-                    <div style={styles.macroKey}>{stat.key}</div>
+                    <div style={{ ...styles.macroKey, lineHeight: 1.2, wordBreak: "break-word" }}>{stat.key}</div>
                   </div>
                 ))}
               </div>
               <div style={styles.tip}>
                 <span style={styles.tipIcon}>📅</span>
-                Last workout: <b style={{ color: accent }}>{formatDate(sessionSummary.lastWorkoutDate)}</b>. Your progress is stored in localStorage.
+                Last workout: <b style={{ color: accent }}>{formatDate(sessionSummary.lastWorkoutDate)}</b>. Weekly target: <b style={{ color: accent }}>{weeklySessionDone}/{weeklySessionTarget}</b> sessions.
               </div>
             </div>
           </div>
@@ -1608,28 +2065,28 @@ export default function FitnessApp() {
                       <div style={styles.metaVal}>{activeSession ? (activeSession.isPaused ? "Paused" : "Running") : "Idle"}</div>
                     </div>
                     <div style={styles.metaChip}>
-                      <div style={styles.metaKey}>Done</div>
+                      <div style={styles.metaKey}>Sets done</div>
                       <div style={styles.metaVal}>
-                        {activeSession ? activeSession.completedExerciseIds.length : 0}/{activeDay.exercises.length}
+                        {activeCompletedSets}/{completionTargetCount}
                       </div>
                     </div>
                     <div style={styles.metaChip}>
-                      <div style={styles.metaKey}>Completion</div>
-                      <div style={styles.metaVal}>{completionRate}%</div>
+                      <div style={styles.metaKey}>Reps logged</div>
+                      <div style={styles.metaVal}>{totalRepsLogged}</div>
                     </div>
                   </div>
+                  <div style={{ marginTop: 10, color: textMuted, fontSize: 12 }}>
+                    Completion: <b style={{ color: accent }}>{completionRate}%</b> of planned sets.
+                  </div>
                   <div style={styles.buttonRow}>
-                    <button style={styles.primaryButton} onClick={beginSession} disabled={Boolean(activeSession)}>
-                      Start session
+                    <button style={styles.primaryButton} onClick={activeSession ? finishSession : beginSession}>
+                      {activeSession ? "Finish & save" : "Start session"}
                     </button>
                     <button style={styles.secondaryButton} onClick={pauseSession} disabled={!activeSession || activeSession.isPaused}>
                       Pause
                     </button>
                     <button style={styles.secondaryButton} onClick={resumeSession} disabled={!activeSession || !activeSession.isPaused}>
                       Resume
-                    </button>
-                    <button style={styles.secondaryButton} onClick={finishSession} disabled={!activeSession}>
-                      Finish & save
                     </button>
                   </div>
                 </div>
@@ -1655,8 +2112,11 @@ export default function FitnessApp() {
               <div style={{ marginBottom: 14, color: textMuted, fontSize: 13, lineHeight: 1.6 }}>
                 Pick a day, start a timer, then tick off the exercises you complete. Everything is saved automatically.
               </div>
+              <div style={{ marginBottom: 12, color: textMuted, fontSize: 12 }}>
+                Goal template: <b style={{ color: accent }}>{getGoalLabel(activeGoalType)}</b> · Active split days: {workoutDays.length}
+              </div>
               <div style={styles.buttonRow}>
-                {defaultWorkoutDays.map((day) => (
+                {workoutDays.map((day) => (
                   <button
                     key={day.id}
                     style={{
@@ -1676,7 +2136,12 @@ export default function FitnessApp() {
                 </div>
                 <div style={styles.dayTitle}>{activeDay.focus}</div>
                 {activeDay.exercises.map((exercise, index) => {
-                  const isDone = activeSession?.completedExerciseIds.includes(exercise.name);
+                  const plannedSets = getPlannedSetCount(exercise.sets);
+                  const completedSets = activeSession ? getCompletedSetsForExercise(activeSession, exercise.name, plannedSets) : 0;
+                  const isDone = completedSets >= plannedSets;
+                  const repsForExercise = Array.isArray(activeSession?.repsLogByExercise?.[exercise.name])
+                    ? activeSession.repsLogByExercise[exercise.name]
+                    : [];
                   const isSelected = selectedExerciseName === exercise.name;
                   return (
                     <div
@@ -1698,23 +2163,60 @@ export default function FitnessApp() {
                         background: isSelected ? "rgba(200,241,53,0.05)" : "transparent",
                       }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => toggleExerciseDone(exercise.name)}
-                        disabled={!activeSession}
+                      <div
                         style={{
                           ...styles.exNum,
                           border: isDone ? `1px solid ${accent}` : "1px solid transparent",
-                          cursor: activeSession ? "pointer" : "not-allowed",
                         }}
                       >
                         {isDone ? "✓" : index + 1}
-                      </button>
+                      </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ ...styles.exName, textDecoration: isDone ? "line-through" : "none" }}>{exercise.name}</div>
-                        <div style={styles.exDetail}>{exercise.sets}</div>
+                        <div style={styles.exDetail}>
+                          Plan: {exercise.sets} · Done: {completedSets}/{plannedSets} sets
+                        </div>
+                        {repsForExercise.length > 0 && (
+                          <div style={{ ...styles.exDetail, marginTop: 4 }}>Reps: {repsForExercise.join(", ")}</div>
+                        )}
                       </div>
-                      <div style={{ color: accent2, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", textAlign: "right" }}>{exercise.calories} kcal</div>
+                      <div style={{ textAlign: "right", minWidth: 122 }}>
+                        <div style={{ color: accent2, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", marginBottom: 8 }}>{exercise.calories} kcal</div>
+                        <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              markSetDone(exercise);
+                            }}
+                            disabled={!activeSession || completedSets >= plannedSets}
+                            style={{
+                              ...styles.secondaryButton,
+                              padding: "6px 10px",
+                              fontSize: 11,
+                              opacity: !activeSession || completedSets >= plannedSets ? 0.6 : 1,
+                            }}
+                          >
+                            Done set
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              undoSetDone(exercise);
+                            }}
+                            disabled={!activeSession || completedSets <= 0}
+                            style={{
+                              ...styles.ghostButton,
+                              padding: "6px 10px",
+                              fontSize: 11,
+                              opacity: !activeSession || completedSets <= 0 ? 0.6 : 1,
+                            }}
+                          >
+                            Undo
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -1802,7 +2304,20 @@ export default function FitnessApp() {
                     </div>
                   </div>
                   <div style={{ marginTop: 10, color: textMuted, fontSize: 13, lineHeight: 1.6 }}>
-                    Completed exercises: {session.completedExerciseIds.length}. {session.notes ? `Notes: ${session.notes}` : "No notes added."}
+                    {Array.isArray(session.exercisePerformance) && session.exercisePerformance.length > 0 ? (
+                      <div>
+                        <div style={{ marginBottom: 8, color: text }}>Exercise log</div>
+                        {session.exercisePerformance.map((item) => (
+                          <div key={`${session.id}-${item.name}`} style={{ marginBottom: 6 }}>
+                            <b style={{ color: text }}>{item.name}</b>: {item.completedSets}/{item.plannedSets} sets
+                            {Array.isArray(item.repsLog) && item.repsLog.length > 0 ? ` · reps ${item.repsLog.join(", ")}` : ""}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div>Completed exercises: {session.completedExerciseIds.length}</div>
+                    )}
+                    <div style={{ marginTop: 6 }}>{session.notes ? `Notes: ${session.notes}` : "No notes added."}</div>
                   </div>
                 </div>
               ))
@@ -1918,7 +2433,13 @@ export default function FitnessApp() {
                 <label style={styles.label} htmlFor="goal">
                   Goal
                 </label>
-                <input id="goal" value={customGoal} onChange={(event) => setCustomGoal(event.target.value)} style={styles.input} />
+                <select id="goal" value={customGoalType} onChange={(event) => setCustomGoalType(event.target.value)} style={styles.input}>
+                  {goalOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label style={styles.label} htmlFor="weight">
@@ -1942,13 +2463,23 @@ export default function FitnessApp() {
                   value={customSessionsPerWeek}
                   onChange={(event) => setCustomSessionsPerWeek(event.target.value)}
                   style={styles.input}
+                  disabled={autoPlanEnabled}
                 />
+                <div style={{ marginTop: 6, fontSize: 12, color: textMuted }}>
+                  Current plan for {getGoalLabel(customGoalType)} supports up to {getWorkoutDaysForGoalType(customGoalType).length} workout days.
+                </div>
               </div>
               <div>
                 <label style={styles.label} htmlFor="workoutType">
                   Workout type
                 </label>
-                <select id="workoutType" value={customWorkoutType} onChange={(event) => setCustomWorkoutType(event.target.value)} style={styles.input}>
+                <select
+                  id="workoutType"
+                  value={customWorkoutType}
+                  onChange={(event) => setCustomWorkoutType(event.target.value)}
+                  style={styles.input}
+                  disabled={autoPlanEnabled}
+                >
                   <option value="strength">Strength</option>
                   <option value="cardio">Cardio</option>
                   <option value="mixed">Mixed</option>
@@ -1958,6 +2489,20 @@ export default function FitnessApp() {
             <div style={styles.buttonRow}>
               <button style={styles.primaryButton} onClick={saveProfile}>
                 Save profile
+              </button>
+              <button
+                style={
+                  autoPlanEnabled
+                    ? {
+                        ...styles.primaryButton,
+                        boxShadow: "0 0 0 1px rgb(var(--accent-rgb) / 0.65), 0 0 24px rgb(var(--accent-rgb) / 0.35)",
+                        border: "1px solid rgb(var(--accent-rgb) / 0.8)",
+                      }
+                    : styles.secondaryButton
+                }
+                onClick={toggleAutoPlan}
+              >
+                Auto-plan: {autoPlanEnabled ? "ON" : "OFF"}
               </button>
               <button style={styles.secondaryButton} onClick={exportProgress}>
                 Export backup
@@ -1971,6 +2516,11 @@ export default function FitnessApp() {
               <button style={styles.secondaryButton} onClick={clearProgress}>
                 Clear saved progress
               </button>
+            </div>
+            <div style={{ marginTop: 10, fontSize: 12, color: textMuted, lineHeight: 1.6 }}>
+              {autoPlanEnabled
+                ? "Auto-plan is ON: sessions/week and workout type are managed automatically for the selected goal."
+                : "Auto-plan is OFF: you can manually choose sessions/week and workout type."}
             </div>
             <div style={{ marginTop: 18, ...styles.filePickerCard }}>
               <div style={styles.filePickerHeader}>
