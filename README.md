@@ -1,3 +1,6 @@
+[Visit site](https://gym-psi-ivory.vercel.app)
+
+
 # Fitness
 
 A bold, single-page fitness planner built with React and Vite. It presents a structured bulk-focused workout split, daily nutrition targets, meal timing, and beginner recovery tips in a dark, high-contrast interface.
