@@ -3,14 +3,83 @@ import ReactDOM from "react-dom/client";
 
 const STORAGE_KEY = "gym-tracker-v1";
 
-const accent = "#c8f135";
-const accent2 = "#59f3c0";
-const bg = "#08111b";
-const panel = "rgba(14, 22, 34, 0.88)";
-const panelStrong = "rgba(20, 31, 47, 0.96)";
-const border = "rgba(255, 255, 255, 0.08)";
-const text = "#f4f7fb";
-const textMuted = "#94a3b8";
+const themeOptions = {
+  midnight: {
+    label: "Midnight",
+    subtitle: "Classic gym dark",
+    vars: {
+      "--bg": "#08111b",
+      "--accent": "#c8f135",
+      "--accent-2": "#59f3c0",
+      "--accent-rgb": "200 241 53",
+      "--accent-2-rgb": "89 243 192",
+      "--panel": "rgba(14, 22, 34, 0.88)",
+      "--panel-strong": "rgba(20, 31, 47, 0.96)",
+      "--border": "rgba(255, 255, 255, 0.08)",
+      "--text": "#f4f7fb",
+      "--text-muted": "#94a3b8",
+    },
+  },
+  ocean: {
+    label: "Ocean",
+    subtitle: "Cool blue focus",
+    vars: {
+      "--bg": "#06141f",
+      "--accent": "#74d8ff",
+      "--accent-2": "#5ef0b0",
+      "--accent-rgb": "116 216 255",
+      "--accent-2-rgb": "94 240 176",
+      "--panel": "rgba(11, 28, 41, 0.9)",
+      "--panel-strong": "rgba(15, 36, 54, 0.98)",
+      "--border": "rgba(116, 216, 255, 0.12)",
+      "--text": "#eff9ff",
+      "--text-muted": "#8ab7ce",
+    },
+  },
+  sunset: {
+    label: "Sunset",
+    subtitle: "Warm motivational",
+    vars: {
+      "--bg": "#191018",
+      "--accent": "#ffbe55",
+      "--accent-2": "#ff7f6f",
+      "--accent-rgb": "255 190 85",
+      "--accent-2-rgb": "255 127 111",
+      "--panel": "rgba(37, 22, 31, 0.9)",
+      "--panel-strong": "rgba(50, 28, 40, 0.98)",
+      "--border": "rgba(255, 190, 85, 0.14)",
+      "--text": "#fff8f2",
+      "--text-muted": "#d5b9b0",
+    },
+  },
+  graphite: {
+    label: "Graphite",
+    subtitle: "Minimal monochrome",
+    vars: {
+      "--bg": "#0d0f13",
+      "--accent": "#e5e7eb",
+      "--accent-2": "#9ca3af",
+      "--accent-rgb": "229 231 235",
+      "--accent-2-rgb": "156 163 175",
+      "--panel": "rgba(21, 24, 30, 0.9)",
+      "--panel-strong": "rgba(27, 31, 38, 0.98)",
+      "--border": "rgba(255, 255, 255, 0.1)",
+      "--text": "#f8fafc",
+      "--text-muted": "#a1a1aa",
+    },
+  },
+};
+
+const defaultThemeKey = "midnight";
+
+const accent = "var(--accent)";
+const accent2 = "var(--accent-2)";
+const bg = "var(--bg)";
+const panel = "var(--panel)";
+const panelStrong = "var(--panel-strong)";
+const border = "var(--border)";
+const text = "var(--text)";
+const textMuted = "var(--text-muted)";
 
 const defaultProfile = {
   name: "Tonoy",
@@ -204,7 +273,7 @@ const styles = {
   hero: {
     background: `linear-gradient(145deg, rgba(10, 18, 29, 0.98), rgba(13, 27, 43, 0.92))`,
     borderBottom: `1px solid ${border}`,
-    padding: "24px 16px 20px",
+    padding: "24px 24px 20px",
     position: "relative",
     overflow: "hidden",
   },
@@ -239,13 +308,15 @@ const styles = {
   },
   heroTop: {
     display: "flex",
+    flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 14,
+    justifyContent: "space-between",
+    gap: 18,
     marginBottom: 8,
   },
   avatar: {
-    width: 68,
-    height: 68,
+    width: 84,
+    height: 84,
     borderRadius: "50%",
     border: `2px solid ${accent}`,
     background: "rgba(255,255,255,0.06)",
@@ -253,8 +324,8 @@ const styles = {
     flexShrink: 0,
   },
   avatarFallback: {
-    width: 68,
-    height: 68,
+    width: 84,
+    height: 84,
     borderRadius: "50%",
     border: `2px solid ${accent}`,
     background: `linear-gradient(135deg, rgba(200,241,53,0.24), rgba(89,243,192,0.14))`,
@@ -454,6 +525,45 @@ const styles = {
     gap: 10,
     flexWrap: "wrap",
     marginTop: 14,
+  },
+  filePickerCard: {
+    borderRadius: 18,
+    padding: 16,
+    background: panelStrong,
+    border: `1px solid ${border}`,
+  },
+  filePickerHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  filePickerTitle: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: text,
+    marginBottom: 4,
+  },
+  filePickerHint: {
+    fontSize: 12,
+    color: textMuted,
+    lineHeight: 1.6,
+  },
+  filePickerMeta: {
+    marginTop: 12,
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    alignItems: "center",
+  },
+  fileBadge: {
+    borderRadius: 999,
+    border: `1px solid ${border}`,
+    background: "rgba(255,255,255,0.04)",
+    color: textMuted,
+    padding: "7px 12px",
+    fontSize: 12,
   },
   reportGrid: {
     display: "grid",
@@ -839,6 +949,28 @@ const buildWeeklyAnalytics = (sessionsList) => {
   };
 };
 
+const getNutritionSuggestions = (profile, targetCalories) => {
+  const goal = (profile.goal || "").toLowerCase();
+  const suggestions = [];
+
+  if (goal.includes("bulk") || goal.includes("gain") || goal.includes("mass")) {
+    suggestions.push(`Aim for a ~250 kcal daily surplus (target ~${targetCalories} kcal).`);
+    suggestions.push("Prioritise ~2.0–2.4 g protein per kg bodyweight to support muscle growth.");
+    suggestions.push("Focus carbs around training and include whole-food calorie-dense options: oats, rice, nuts, whole-milk yogurt.");
+  } else if (goal.includes("cut") || goal.includes("lose") || goal.includes("fat")) {
+    suggestions.push(`Create a modest calorie deficit while keeping protein high (~2.0–2.4 g/kg).`);
+    suggestions.push("Prefer high-volume vegetables, lean protein, and time carbs around workouts to preserve performance.");
+    suggestions.push("Track progress weekly and avoid drops >0.7–1% bodyweight per week.");
+  } else {
+    suggestions.push(`Target roughly ${targetCalories} kcal/day as a starting point and adjust from there.`);
+    suggestions.push("Keep protein around 1.6–2.2 g/kg, and prioritise whole foods over processed snacks.");
+    suggestions.push("Drink water, sleep well, and follow progressive overload for steady results.");
+  }
+
+  suggestions.push("Sample high-protein choices: eggs, chicken breast, Greek yogurt, cottage cheese, lentils.");
+  return suggestions;
+};
+
 const downloadJson = (filename, data) => {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -929,6 +1061,8 @@ const defaultSessionSummary = {
   lastWorkoutDate: null,
 };
 
+const defaultSplashState = true;
+
 export default function FitnessApp() {
   const storedState = loadState();
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window === "undefined" ? 0 : window.innerWidth));
@@ -948,9 +1082,29 @@ export default function FitnessApp() {
   const [customSessionsPerWeek, setCustomSessionsPerWeek] = useState(String(profile.sessionsPerWeek));
   const [customWorkoutType, setCustomWorkoutType] = useState(profile.workoutType);
   const [selectedExerciseName, setSelectedExerciseName] = useState(defaultWorkoutDays[0].exercises[0].name);
+  const [backupFileName, setBackupFileName] = useState("No file chosen");
+  const [profilePhotoFileName, setProfilePhotoFileName] = useState("No image chosen");
   const tickRef = useRef(null);
+  const profilePhotoInputRef = useRef(null);
   const backupInputRef = useRef(null);
   const isDesktop = viewportWidth >= 960;
+  const [themeKey, setThemeKey] = useState(storedState?.themeKey ?? defaultThemeKey);
+  const [hideSplash, setHideSplash] = useState(storedState?.hideSplash ?? false);
+  const [showSplash, setShowSplash] = useState(storedState?.hideSplash ? false : defaultSplashState);
+  const theme = themeOptions[themeKey] ?? themeOptions[defaultThemeKey];
+
+  const themeStyles = {
+    "--bg": theme.vars["--bg"],
+    "--accent": theme.vars["--accent"],
+    "--accent-2": theme.vars["--accent-2"],
+    "--accent-rgb": theme.vars["--accent-rgb"],
+    "--accent-2-rgb": theme.vars["--accent-2-rgb"],
+    "--panel": theme.vars["--panel"],
+    "--panel-strong": theme.vars["--panel-strong"],
+    "--border": theme.vars["--border"],
+    "--text": theme.vars["--text"],
+    "--text-muted": theme.vars["--text-muted"],
+  };
 
   useEffect(() => {
     if (!activeSession) {
@@ -992,15 +1146,21 @@ export default function FitnessApp() {
 
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ profile, profilePhoto, sessions, summary: sessionSummary, activeSession, selectedDayId })
+      JSON.stringify({ profile, profilePhoto, sessions, summary: sessionSummary, activeSession, selectedDayId, themeKey, hideSplash })
     );
-  }, [profile, profilePhoto, sessions, sessionSummary, activeSession, selectedDayId]);
+  }, [profile, profilePhoto, sessions, sessionSummary, activeSession, selectedDayId, themeKey, hideSplash]);
 
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (hideSplash) return undefined;
+    const timer = window.setTimeout(() => setShowSplash(false), 2600);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -1132,6 +1292,8 @@ export default function FitnessApp() {
       sessions,
       summary: sessionSummary,
       selectedDayId,
+      themeKey,
+      hideSplash,
       exportedAt: new Date().toISOString(),
     });
   };
@@ -1139,6 +1301,10 @@ export default function FitnessApp() {
   const exportAsPdf = () => {
     setActiveTab("report");
     window.setTimeout(() => window.print(), 150);
+  };
+
+  const applyTheme = (nextThemeKey) => {
+    setThemeKey(nextThemeKey);
   };
 
   const handlePhotoUpload = async (event) => {
@@ -1149,6 +1315,7 @@ export default function FitnessApp() {
 
     const dataUrl = await readFileAsDataUrl(file);
     setProfilePhoto(dataUrl);
+    setProfilePhotoFileName(file.name);
     event.target.value = "";
   };
 
@@ -1184,11 +1351,15 @@ export default function FitnessApp() {
       setCustomWorkoutType(nextProfile.workoutType ?? defaultProfile.workoutType);
 
       setProfilePhoto(imported.profilePhoto ?? "");
+      setProfilePhotoFileName(imported.profilePhoto ? "Restored from backup" : "No image chosen");
       setSessions(Array.isArray(imported.sessions) ? imported.sessions : []);
       setSessionSummary(imported.summary ?? defaultSessionSummary);
       setSelectedDayId(imported.selectedDayId ?? defaultWorkoutDays[0].id);
+      setThemeKey(imported.themeKey ?? defaultThemeKey);
+      setHideSplash(Boolean(imported.hideSplash));
       setActiveSession(null);
       setSessionNotes("");
+      setBackupFileName(file.name);
       setActiveTab("report");
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Unable to import backup.");
@@ -1245,7 +1416,54 @@ export default function FitnessApp() {
   };
 
   return (
-    <div style={styles.app}>
+    <div style={{ ...styles.app, ...themeStyles }}>
+      {showSplash && (
+        <div
+          className="no-print"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
+            display: "grid",
+            placeItems: "center",
+            background:
+              "radial-gradient(circle at top, rgb(var(--accent-2-rgb) / 0.14), transparent 34%), linear-gradient(180deg, rgb(6 9 14 / 0.94), rgb(8 17 27 / 0.99))",
+            backdropFilter: "blur(8px)",
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 520,
+              borderRadius: 28,
+              border: `1px solid rgb(var(--accent-rgb) / 0.22)`,
+              background: "linear-gradient(180deg, rgb(20 31 47 / 0.98), rgb(11 17 27 / 0.98))",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
+              padding: 28,
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 12, letterSpacing: 4, color: accent, textTransform: "uppercase", marginBottom: 12 }}>
+              Personal training app
+            </div>
+            <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 42, lineHeight: 0.95, marginBottom: 12 }}>
+              Tanvir R Tonoy
+            </div>
+            <div style={{ color: textMuted, fontSize: 14, lineHeight: 1.8, marginBottom: 18 }}>
+              Built for personal use only.<br />All rights reserved.
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <button style={styles.primaryButton} onClick={() => setShowSplash(false)}>
+                Enter app
+              </button>
+              <button style={styles.secondaryButton} onClick={() => setShowSplash(false)}>
+                Skip splash
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={heroStyle}>
         <div style={styles.heroAccent} />
         <div style={styles.heroLabel}>// Personalized training dashboard</div>
@@ -1623,6 +1841,15 @@ export default function FitnessApp() {
               </div>
             </div>
 
+            <div style={{ ...styles.card }}>
+              <div style={styles.sectionTitle}>Nutrition Suggestions</div>
+              <div style={{ color: textMuted, fontSize: 13, lineHeight: 1.7 }}>
+                {getNutritionSuggestions(profile, targetCalories).map((sugg) => (
+                  <div key={sugg} style={{ marginBottom: 8 }}>• {sugg}</div>
+                ))}
+              </div>
+            </div>
+
             <div style={styles.card}>
               <div style={styles.sectionTitle}>Daily Notes</div>
               <div style={styles.tip}>
@@ -1656,10 +1883,27 @@ export default function FitnessApp() {
                   </div>
                 </div>
                 <div style={{ marginTop: 14 }}>
-                  <label style={styles.label} htmlFor="profile-photo">
-                    Profile photo
-                  </label>
-                  <input id="profile-photo" type="file" accept="image/*" onChange={handlePhotoUpload} style={styles.input} />
+                  <div style={styles.filePickerCard}>
+                    <div style={styles.filePickerHeader}>
+                      <div>
+                        <div style={styles.filePickerTitle}>Profile photo</div>
+                        <div style={styles.filePickerHint}>Choose an image to personalize the dashboard and report.</div>
+                      </div>
+                      <button type="button" style={styles.secondaryButton} onClick={() => profilePhotoInputRef.current?.click()}>
+                        Choose image
+                      </button>
+                    </div>
+                    <input
+                      ref={profilePhotoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      style={{ display: "none" }}
+                    />
+                    <div style={styles.filePickerMeta}>
+                      <span style={styles.fileBadge}>{profilePhotoFileName}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1728,6 +1972,55 @@ export default function FitnessApp() {
                 Clear saved progress
               </button>
             </div>
+            <div style={{ marginTop: 18, ...styles.filePickerCard }}>
+              <div style={styles.filePickerHeader}>
+                <div>
+                  <div style={styles.filePickerTitle}>Theme selection</div>
+                  <div style={styles.filePickerHint}>Choose a look that fits your mood. The selection is saved on this device.</div>
+                </div>
+                <span style={styles.fileBadge}>{theme.label}</span>
+              </div>
+              <div style={{ ...styles.tutorialPills, marginTop: 16 }}>
+                {Object.entries(themeOptions).map(([key, option]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    style={{
+                      ...styles.tutorialPill,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: 12,
+                      background: themeKey === key ? "rgb(var(--accent-rgb) / 0.12)" : "transparent",
+                      borderColor: themeKey === key ? "rgb(var(--accent-rgb) / 0.35)" : border,
+                    }}
+                    onClick={() => applyTheme(key)}
+                  >
+                    <div style={{ width: 56, height: 36, borderRadius: 8, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)", border: "1px solid rgba(0,0,0,0.12)", flexShrink: 0, overflow: "hidden" }}>
+                      <div style={{ width: "100%", height: "100%", background: `linear-gradient(90deg, ${option.vars["--accent"]}, ${option.vars["--accent-2"]})` }} />
+                    </div>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontWeight: 700 }}>{option.label}</div>
+                      <div style={{ fontSize: 11, color: textMuted, marginTop: 2 }}>{option.subtitle}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <input
+                  type="checkbox"
+                  checked={hideSplash}
+                  onChange={(e) => {
+                    const next = Boolean(e.target.checked);
+                    setHideSplash(next);
+                    if (next) setShowSplash(false);
+                  }}
+                />
+                <div style={{ fontSize: 13 }}>Don't show splash again</div>
+              </label>
+            </div>
             <input
               ref={backupInputRef}
               type="file"
@@ -1735,6 +2028,20 @@ export default function FitnessApp() {
               onChange={handleBackupImport}
               style={{ display: "none" }}
             />
+            <div style={{ ...styles.filePickerCard, marginTop: 16 }}>
+              <div style={styles.filePickerHeader}>
+                <div>
+                  <div style={styles.filePickerTitle}>Backup import</div>
+                  <div style={styles.filePickerHint}>Pick a JSON backup file to restore your workout data.</div>
+                </div>
+                <button type="button" style={styles.secondaryButton} onClick={triggerBackupImport}>
+                  Choose file
+                </button>
+              </div>
+              <div style={styles.filePickerMeta}>
+                <span style={styles.fileBadge}>{backupFileName}</span>
+              </div>
+            </div>
             <div style={{ marginTop: 16, color: textMuted, fontSize: 13, lineHeight: 1.7 }}>
               Saved locally on this browser. Use Export backup to download your data and Import backup to restore it later. Clearing progress removes workout history and summary stats, but keeps your profile defaults in the form.
             </div>
