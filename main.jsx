@@ -373,7 +373,7 @@ const exerciseTutorials = {
     steps: ["Keep elbows pinned to your sides.", "Push the rope down and split it at the bottom.", "Return slowly without letting elbows drift forward."],
   },
   "Overhead Tricep Extension": {
-    videoQuery: "Overhead Tricep Extension tutorial",
+    videoQuery: "Overhead Triceps Extension tutorial",
     steps: ["Brace your core and keep ribs down.", "Lower the weight behind your head.", "Extend fully while keeping elbows narrow."],
   },
   Deadlift: {
@@ -2263,7 +2263,7 @@ export default function FitnessApp() {
 
                 <div style={styles.tutorialActions}>
                   <a
-                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(selectedExercise.videoQuery)}&sp=CAI%253D`}
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(selectedExercise.videoQuery)}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{ ...styles.secondaryButton, textDecoration: "none" }}
