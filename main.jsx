@@ -1435,10 +1435,26 @@ export default function FitnessApp() {
 
   const bmi = calculateBmi(profile.weight, profile.height);
   const tdee = getTdee(profile);
-  const targetCalories = Math.round(tdee + 250);
-  const protein = Math.round(profile.weight * 2.2);
-  const carbs = Math.round((targetCalories * 0.45) / 4);
-  const fats = Math.round((targetCalories * 0.25) / 9);
+  const targetCalories = (() => {
+    if (activeGoalType === "gain") {
+      return Math.round(tdee + 250);
+    }
+    if (activeGoalType === "loss") {
+      return Math.max(1200, Math.round(tdee - 500));
+    }
+    return Math.round(tdee);
+  })();
+
+  const proteinPerKgMap = { gain: 2.0, loss: 2.2, recomp: 1.8 };
+  const protein = Math.round(profile.weight * (proteinPerKgMap[activeGoalType] ?? 1.8));
+
+  const carbPercMap = { gain: 0.5, loss: 0.35, recomp: 0.45 };
+  const fatPercMap = { gain: 0.25, loss: 0.3, recomp: 0.25 };
+  const carbPerc = carbPercMap[activeGoalType] ?? 0.45;
+  const fatPerc = fatPercMap[activeGoalType] ?? 0.25;
+
+  const carbs = Math.round((targetCalories * carbPerc) / 4);
+  const fats = Math.round((targetCalories * fatPerc) / 9);
   const activeDay = workoutDays.find((day) => day.id === selectedDayId) ?? workoutDays[0];
   const sessionDay = activeSession
     ? allWorkoutDays.find((day) => day.id === activeSession.dayId) ?? activeDay
