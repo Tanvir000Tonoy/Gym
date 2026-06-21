@@ -88,6 +88,10 @@ const defaultProfile = {
   height: 162,
   goal: "Weight gain",
   goalType: "gain",
+  sex: "male",
+  unit: "metric",
+  activityLevel: "moderate",
+  macroPrefs: {},
   sessionsPerWeek: 5,
   workoutType: "strength",
 };
@@ -358,6 +362,7 @@ const getRecommendedDayFromSplit = (days) => {
 const exerciseTutorials = {
   "Barbell Bench Press": {
     videoQuery: "Barbell Bench Press tutorial",
+    videoUrl: "https://www.youtube.com/results?search_query=Barbell+Bench+Press+tutorial",
     steps: ["Plant your feet and keep your upper back tight.", "Lower the bar to mid-chest with control.", "Press up in a stable path without bouncing."],
   },
   "Incline Dumbbell Press": {
@@ -374,10 +379,12 @@ const exerciseTutorials = {
   },
   "Overhead Tricep Extension": {
     videoQuery: "Overhead Triceps Extension tutorial",
+    videoUrl: "https://www.youtube.com/results?search_query=Overhead+Triceps+Extension+tutorial",
     steps: ["Brace your core and keep ribs down.", "Lower the weight behind your head.", "Extend fully while keeping elbows narrow."],
   },
   Deadlift: {
     videoQuery: "Deadlift tutorial",
+    videoUrl: "https://www.youtube.com/results?search_query=deadlift+tutorial",
     steps: ["Set your feet under the bar and brace hard.", "Push the floor away while keeping the bar close.", "Lock out by standing tall, not leaning back."],
   },
   "Lat Pulldown": {
@@ -398,10 +405,12 @@ const exerciseTutorials = {
   },
   "Barbell Squat": {
     videoQuery: "Barbell Squat tutorial",
+    videoUrl: "https://www.youtube.com/results?search_query=barbell+squat+tutorial",
     steps: ["Set your feet shoulder-width and brace your core.", "Sit down between your hips with knees tracking toes.", "Drive up through mid-foot and keep your chest proud."],
   },
   "Romanian Deadlift": {
     videoQuery: "Romanian Deadlift tutorial",
+    videoUrl: "https://www.youtube.com/results?search_query=romanian+deadlift+tutorial",
     steps: ["Keep a soft bend in the knees.", "Hinge the hips back until you feel your hamstrings stretch.", "Drive hips forward to stand tall."],
   },
   "Leg Press": {
@@ -438,6 +447,7 @@ const exerciseTutorials = {
   },
   "Pull-Ups / Assisted Pull-Ups": {
     videoQuery: "Pull Up tutorial",
+    videoUrl: "https://www.youtube.com/results?search_query=pull+ups+tutorial",
     steps: ["Start from a dead hang with shoulders engaged.", "Pull chest toward the bar using your back.", "Lower all the way under control."],
   },
   "Dumbbell Lunges": {
@@ -470,6 +480,7 @@ const exerciseTutorials = {
   },
   "Treadmill Incline Walk": {
     videoQuery: "Treadmill Incline Walk technique",
+    videoUrl: "https://www.youtube.com/results?search_query=treadmill+incline+walk+technique",
     steps: ["Set an incline you can maintain with good posture.", "Keep a natural arm swing and avoid leaning on rails.", "Walk at a brisk pace with controlled breathing."],
   },
 };
@@ -1252,6 +1263,16 @@ const createSession = (day, profile) => {
   };
 };
 
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(String(text));
+    // lightweight visual feedback via accessible event
+    window.dispatchEvent(new CustomEvent("gym:notify", { detail: "Copied to clipboard: " + String(text) }));
+  } catch (err) {
+    window.dispatchEvent(new CustomEvent("gym:notify", { detail: "Unable to copy to clipboard." }));
+  }
+};
+
 const estimateCaloriesBurned = (seconds, weight, workoutType) => {
   const intensityMap = {
     strength: 0.062,
@@ -1265,13 +1286,23 @@ const estimateCaloriesBurned = (seconds, weight, workoutType) => {
 const calculateBmi = (weight, height) => (weight / ((height / 100) * (height / 100))).toFixed(1);
 
 const getTdee = (profile) => {
-  const base = 10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5;
+  const weight = Number(profile.weight) || 0;
+  const height = Number(profile.height) || 0;
+  const age = Number(profile.age) || 0;
+  const sex = (profile.sex || "male").toLowerCase();
+
+  // Mifflin-St Jeor BMR
+  const bmr = Math.round(10 * weight + 6.25 * height - 5 * age + (sex === "male" ? 5 : -161));
+
   const activityMultiplier = {
-    strength: 1.5,
-    cardio: 1.55,
-    mixed: 1.6,
-  }[profile.workoutType] ?? 1.5;
-  return Math.round(base * activityMultiplier);
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    active: 1.725,
+    very: 1.9,
+  }[profile.activityLevel ?? profile.workoutType ?? "moderate"] ?? 1.55;
+
+  return Math.round(bmr * activityMultiplier);
 };
 
 const loadState = () => {
@@ -1317,6 +1348,14 @@ export default function FitnessApp() {
   const [customGoalType, setCustomGoalType] = useState(profile.goalType ?? inferGoalTypeFromGoalText(profile.goal));
   const [customSessionsPerWeek, setCustomSessionsPerWeek] = useState(String(profile.sessionsPerWeek));
   const [customWorkoutType, setCustomWorkoutType] = useState(profile.workoutType);
+  const [customSex, setCustomSex] = useState(profile.sex ?? "male");
+  const [customUnit, setCustomUnit] = useState(profile.unit ?? "metric");
+  const [customActivityLevel, setCustomActivityLevel] = useState(profile.activityLevel ?? "moderate");
+  const [customProteinPerKg, setCustomProteinPerKg] = useState(
+    profile.macroPrefs?.proteinPerKg ?? ""
+  );
+  const [customCarbPerc, setCustomCarbPerc] = useState(profile.macroPrefs?.carbPerc ?? "");
+  const [customFatPerc, setCustomFatPerc] = useState(profile.macroPrefs?.fatPerc ?? "");
   const [selectedExerciseName, setSelectedExerciseName] = useState(initialWorkoutDays[0].exercises[0].name);
   const [backupFileName, setBackupFileName] = useState("No file chosen");
   const [profilePhotoFileName, setProfilePhotoFileName] = useState("No image chosen");
@@ -1327,6 +1366,7 @@ export default function FitnessApp() {
   const [themeKey, setThemeKey] = useState(storedState?.themeKey ?? defaultThemeKey);
   const [hideSplash, setHideSplash] = useState(storedState?.hideSplash ?? false);
   const [showSplash, setShowSplash] = useState(storedState?.hideSplash ? false : defaultSplashState);
+  const [notification, setNotification] = useState("");
   const [autoPlanEnabled, setAutoPlanEnabled] = useState(storedState?.autoPlanEnabled ?? false);
   const theme = themeOptions[themeKey] ?? themeOptions[defaultThemeKey];
   const activeGoalType = profile.goalType ?? inferGoalTypeFromGoalText(profile.goal);
@@ -1417,6 +1457,18 @@ export default function FitnessApp() {
   }, []);
 
   useEffect(() => {
+    const handler = (e) => setNotification(String(e?.detail ?? ""));
+    window.addEventListener("gym:notify", handler);
+    return () => window.removeEventListener("gym:notify", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!notification) return undefined;
+    const t = window.setTimeout(() => setNotification(""), 3000);
+    return () => window.clearTimeout(t);
+  }, [notification]);
+
+  useEffect(() => {
     const currentDay = workoutDays.find((day) => day.id === selectedDayId) ?? workoutDays[0];
     if (!currentDay) {
       return;
@@ -1444,14 +1496,17 @@ export default function FitnessApp() {
     }
     return Math.round(tdee);
   })();
-
   const proteinPerKgMap = { gain: 2.0, loss: 2.2, recomp: 1.8 };
-  const protein = Math.round(profile.weight * (proteinPerKgMap[activeGoalType] ?? 1.8));
+  const defaultProteinPerKg = proteinPerKgMap[activeGoalType] ?? 1.8;
+  const proteinPerKg = Number(profile.macroPrefs?.proteinPerKg ?? defaultProteinPerKg);
+  const protein = Math.round(profile.weight * proteinPerKg);
 
   const carbPercMap = { gain: 0.5, loss: 0.35, recomp: 0.45 };
   const fatPercMap = { gain: 0.25, loss: 0.3, recomp: 0.25 };
-  const carbPerc = carbPercMap[activeGoalType] ?? 0.45;
-  const fatPerc = fatPercMap[activeGoalType] ?? 0.25;
+  const defaultCarbPerc = carbPercMap[activeGoalType] ?? 0.45;
+  const defaultFatPerc = fatPercMap[activeGoalType] ?? 0.25;
+  const carbPerc = profile.macroPrefs?.carbPerc ? Number(profile.macroPrefs.carbPerc) / 100 : defaultCarbPerc;
+  const fatPerc = profile.macroPrefs?.fatPerc ? Number(profile.macroPrefs.fatPerc) / 100 : defaultFatPerc;
 
   const carbs = Math.round((targetCalories * carbPerc) / 4);
   const fats = Math.round((targetCalories * fatPerc) / 9);
@@ -1651,13 +1706,31 @@ export default function FitnessApp() {
       ? recommended.sessionsPerWeek
       : Math.min(Math.max(1, parsedSessions), planDays.length);
     const nextWorkoutType = autoPlanEnabled ? recommended.workoutType : customWorkoutType;
+    // convert inputs to metric for internal storage
+    let weightKg = Number(customWeight) || defaultProfile.weight;
+    let heightCm = Number(customHeight) || defaultProfile.height;
+    if (customUnit === "imperial") {
+      // customWeight assumed lbs, customHeight assumed inches
+      weightKg = Math.round((Number(customWeight) || defaultProfile.weight) / 2.20462);
+      heightCm = Math.round((Number(customHeight) || defaultProfile.height) * 2.54);
+    }
+
+    const macroPrefs = {};
+    if (customProteinPerKg) macroPrefs.proteinPerKg = Number(customProteinPerKg);
+    if (customCarbPerc) macroPrefs.carbPerc = Number(customCarbPerc);
+    if (customFatPerc) macroPrefs.fatPerc = Number(customFatPerc);
+
     const nextProfile = {
       name: customName.trim() || defaultProfile.name,
       age: defaultProfile.age,
-      weight: Number(customWeight) || defaultProfile.weight,
-      height: Number(customHeight) || defaultProfile.height,
+      weight: weightKg,
+      height: heightCm,
       goalType: customGoalType,
       goal: getGoalLabel(customGoalType),
+      sex: customSex,
+      unit: customUnit,
+      activityLevel: customActivityLevel,
+      macroPrefs,
       sessionsPerWeek: clampedSessions,
       workoutType: nextWorkoutType,
     };
@@ -1668,6 +1741,13 @@ export default function FitnessApp() {
     }
 
     setProfile(nextProfile);
+    // sync UI controls with saved profile
+    setCustomSex(nextProfile.sex ?? "male");
+    setCustomUnit(nextProfile.unit ?? "metric");
+    setCustomActivityLevel(nextProfile.activityLevel ?? "moderate");
+    setCustomProteinPerKg(nextProfile.macroPrefs?.proteinPerKg ?? "");
+    setCustomCarbPerc(nextProfile.macroPrefs?.carbPerc ?? "");
+    setCustomFatPerc(nextProfile.macroPrefs?.fatPerc ?? "");
     if (activeSession) {
       setActiveSession((current) =>
         current
@@ -1819,7 +1899,7 @@ export default function FitnessApp() {
       setBackupFileName(file.name);
       setActiveTab("report");
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Unable to import backup.");
+      window.dispatchEvent(new CustomEvent("gym:notify", { detail: error instanceof Error ? error.message : "Unable to import backup." }));
     } finally {
       event.target.value = "";
     }
@@ -1867,6 +1947,15 @@ export default function FitnessApp() {
     ...styles.weeklyBars,
     gridTemplateColumns: isDesktop ? "repeat(7, minmax(0, 1fr))" : styles.weeklyBars.gridTemplateColumns,
   };
+  const appTabs = [
+    { id: "dashboard", label: "Dashboard" },
+    { id: "workout", label: "Workout" },
+    { id: "history", label: "History" },
+    { id: "nutrition", label: "Nutrition" },
+    { id: "report", label: "Report" },
+    { id: "settings", label: "Settings" },
+  ];
+
   const timerMetaStyle = {
     ...styles.timerMeta,
     gridTemplateColumns: isDesktop ? "repeat(3, minmax(0, 1fr))" : styles.timerMeta.gridTemplateColumns,
@@ -1874,6 +1963,11 @@ export default function FitnessApp() {
 
   return (
     <div style={{ ...styles.app, ...themeStyles }}>
+      {notification && (
+        <div role="status" aria-live="polite" style={{ position: "fixed", top: 16, right: 16, zIndex: 300, background: "rgba(0,0,0,0.6)", color: "#fff", padding: "8px 12px", borderRadius: 10, border: `1px solid rgba(255,255,255,0.06)` }}>
+          {notification}
+        </div>
+      )}
       {showSplash && (
         <div
           className="no-print"
@@ -1956,23 +2050,31 @@ export default function FitnessApp() {
         </div>
       </div>
 
-      <div className="no-print" style={styles.tabs}>
-        {[
-          { id: "dashboard", label: "Dashboard" },
-          { id: "workout", label: "Workout" },
-          { id: "history", label: "History" },
-          { id: "nutrition", label: "Nutrition" },
-          { id: "report", label: "Report" },
-          { id: "settings", label: "Settings" },
-        ].map((tab) => (
-          <button key={tab.id} style={styles.tab(activeTab === tab.id)} onClick={() => setActiveTab(tab.id)}>
+      <div className="no-print" style={styles.tabs} role="tablist" aria-label="Main tabs">
+        {appTabs.map((tab) => (
+          <button
+            key={tab.id}
+            id={`tab-${tab.id}`}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                const idx = appTabs.findIndex((t) => t.id === activeTab);
+                const next = e.key === "ArrowRight" ? appTabs[(idx + 1) % appTabs.length] : appTabs[(idx - 1 + appTabs.length) % appTabs.length];
+                setActiveTab(next.id);
+              }
+            }}
+            style={styles.tab(activeTab === tab.id)}
+            onClick={() => setActiveTab(tab.id)}
+          >
             {tab.label}
           </button>
         ))}
       </div>
 
       {activeTab === "dashboard" && (
-        <div style={sectionStyle}>
+        <div id="panel-dashboard" role="tabpanel" aria-labelledby="tab-dashboard" tabIndex={0} style={sectionStyle}>
           <div style={dashboardGridStyle}>
             <div style={styles.card}>
               <div style={styles.sectionTitle}>Today&apos;s Session</div>
@@ -2062,7 +2164,7 @@ export default function FitnessApp() {
       )}
 
       {activeTab === "workout" && (
-        <div style={sectionStyle}>
+        <div id="panel-workout" role="tabpanel" aria-labelledby="tab-workout" tabIndex={0} style={sectionStyle}>
           <div style={splitGridStyle}>
             <div>
               <div style={styles.card}>
@@ -2262,14 +2364,38 @@ export default function FitnessApp() {
                 </div>
 
                 <div style={styles.tutorialActions}>
-                  <a
-                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(selectedExercise.videoQuery)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ ...styles.secondaryButton, textDecoration: "none" }}
-                  >
-                    Watch on YouTube
-                  </a>
+                  {(() => {
+                    // prefer an explicit videoUrl when provided; fall back to a search URL
+                    const href = selectedExercise.videoUrl
+                      ? selectedExercise.videoUrl
+                      : `https://www.youtube.com/results?search_query=${encodeURIComponent(selectedExercise.videoQuery)}`;
+
+                    // if a YouTube watch URL is provided, try to extract a thumbnail
+                    let thumbnail = null;
+                    try {
+                      const urlObj = new URL(href);
+                      if (urlObj.hostname.includes("youtube") && urlObj.searchParams.has("v")) {
+                        const vid = urlObj.searchParams.get("v");
+                        thumbnail = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
+                      }
+                    } catch (e) {
+                      // ignore malformed URLs
+                    }
+
+                    return (
+                      <>
+                        {thumbnail && (
+                          <a href={href} target="_blank" rel="noreferrer" style={{ display: "inline-block", marginRight: 8 }} title={`Open ${selectedExerciseName} on YouTube`} aria-label={`Open ${selectedExerciseName} on YouTube`}>
+                            <img src={thumbnail} alt={`${selectedExerciseName} thumbnail`} style={{ width: 96, height: 54, borderRadius: 8, objectFit: "cover", border: `1px solid ${border}` }} />
+                          </a>
+                        )}
+
+                        <a href={href} target="_blank" rel="noreferrer" style={{ ...styles.secondaryButton, textDecoration: "none" }} title={`Watch ${selectedExerciseName} on YouTube`} aria-label={`Watch ${selectedExerciseName} on YouTube`}>
+                          Watch on YouTube
+                        </a>
+                      </>
+                    );
+                  })()}
                   <button type="button" style={styles.secondaryButton} onClick={() => setSelectedExerciseName(activeDay.exercises[0].name)}>
                     Reset to first exercise
                   </button>
@@ -2294,7 +2420,7 @@ export default function FitnessApp() {
       )}
 
       {activeTab === "history" && (
-        <div style={sectionStyle}>
+        <div id="panel-history" role="tabpanel" aria-labelledby="tab-history" tabIndex={0} style={sectionStyle}>
           <div style={styles.card}>
             <div style={styles.sectionTitle}>Saved Sessions</div>
             {workoutHistory.length === 0 ? (
@@ -2343,7 +2469,7 @@ export default function FitnessApp() {
       )}
 
       {activeTab === "nutrition" && (
-        <div style={sectionStyle}>
+        <div id="panel-nutrition" role="tabpanel" aria-labelledby="tab-nutrition" tabIndex={0} style={sectionStyle}>
           <div style={dashboardGridStyle}>
             <div style={styles.card}>
               <div style={styles.sectionTitle}>Macro Targets</div>
@@ -2354,10 +2480,21 @@ export default function FitnessApp() {
                   { key: "Carbs", val: carbs, unit: "g", pct: 70 },
                   { key: "Fats", val: fats, unit: "g", pct: 55 },
                 ].map((macro) => (
-                  <div key={macro.key} style={styles.macroCard}>
-                    <div style={styles.macroVal}>
-                      {macro.val}
-                      <span style={{ fontSize: 14, color: textMuted }}> {macro.unit}</span>
+                  <div key={macro.key} style={styles.macroCard} title={`${macro.key}: ${macro.val} ${macro.unit}`} aria-label={`${macro.key} ${macro.val} ${macro.unit}`}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={styles.macroVal}>
+                        {macro.val}
+                        <span style={{ fontSize: 14, color: textMuted }}> {macro.unit}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(`${macro.val} ${macro.unit}`)}
+                        style={styles.ghostButton}
+                        title={`Copy ${macro.key}`}
+                        aria-label={`Copy ${macro.key} to clipboard`}
+                      >
+                        📋
+                      </button>
                     </div>
                     <div style={styles.macroKey}>{macro.key}</div>
                     <div style={styles.progressBar(macro.pct)}>
@@ -2397,7 +2534,7 @@ export default function FitnessApp() {
       )}
 
       {activeTab === "settings" && (
-        <div style={sectionStyle}>
+        <div id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" tabIndex={0} style={sectionStyle}>
           <div style={styles.card}>
             <div style={styles.sectionTitle}>Personal Profile</div>
             <div style={{ ...styles.reportGrid, marginBottom: 16 }}>
@@ -2459,13 +2596,13 @@ export default function FitnessApp() {
               </div>
               <div>
                 <label style={styles.label} htmlFor="weight">
-                  Weight (kg)
+                  Weight ({customUnit === "imperial" ? "lb" : "kg"})
                 </label>
                 <input id="weight" type="number" value={customWeight} onChange={(event) => setCustomWeight(event.target.value)} style={styles.input} />
               </div>
               <div>
                 <label style={styles.label} htmlFor="height">
-                  Height (cm)
+                  Height ({customUnit === "imperial" ? "in" : "cm"})
                 </label>
                 <input id="height" type="number" value={customHeight} onChange={(event) => setCustomHeight(event.target.value)} style={styles.input} />
               </div>
@@ -2500,6 +2637,75 @@ export default function FitnessApp() {
                   <option value="cardio">Cardio</option>
                   <option value="mixed">Mixed</option>
                 </select>
+              </div>
+              <div>
+                <label style={styles.label} htmlFor="sex">
+                  Sex
+                </label>
+                <select id="sex" value={customSex} onChange={(e) => setCustomSex(e.target.value)} style={styles.input}>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+              <div>
+                <label style={styles.label} htmlFor="unit">
+                  Units
+                </label>
+                <select
+                  id="unit"
+                  value={customUnit}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    // convert displayed inputs when switching unit
+                    if (next === "imperial" && customUnit !== "imperial") {
+                      // metric -> imperial
+                      setCustomWeight((w) => String(Math.round((Number(w) || 0) * 2.20462)));
+                      setCustomHeight((h) => String(Math.round((Number(h) || 0) / 2.54)));
+                    }
+                    if (next === "metric" && customUnit !== "metric") {
+                      // imperial -> metric
+                      setCustomWeight((w) => String(Math.round((Number(w) || 0) / 2.20462)));
+                      setCustomHeight((h) => String(Math.round((Number(h) || 0) * 2.54)));
+                    }
+                    setCustomUnit(next);
+                  }}
+                  style={styles.input}
+                >
+                  <option value="metric">Metric (kg, cm)</option>
+                  <option value="imperial">Imperial (lb, in)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={styles.label} htmlFor="activity">
+                  Activity level
+                </label>
+                <select id="activity" value={customActivityLevel} onChange={(e) => setCustomActivityLevel(e.target.value)} style={styles.input}>
+                  <option value="sedentary">Sedentary (little/no exercise)</option>
+                  <option value="light">Light (1-3 days/week)</option>
+                  <option value="moderate">Moderate (3-5 days/week)</option>
+                  <option value="active">Active (6-7 days/week)</option>
+                  <option value="very">Very active (hard daily exercise)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={styles.label} htmlFor="proteinPerKg">
+                  Protein (g/kg)
+                </label>
+                <input id="proteinPerKg" type="number" step="0.1" value={customProteinPerKg} onChange={(e) => setCustomProteinPerKg(e.target.value)} style={styles.input} placeholder="leave empty to use goal default" />
+              </div>
+              <div>
+                <label style={styles.label} htmlFor="carbPerc">
+                  Carbs (% of kcal)
+                </label>
+                <input id="carbPerc" type="number" step="1" value={customCarbPerc} onChange={(e) => setCustomCarbPerc(e.target.value)} style={styles.input} placeholder="e.g. 45" />
+              </div>
+              <div>
+                <label style={styles.label} htmlFor="fatPerc">
+                  Fats (% of kcal)
+                </label>
+                <input id="fatPerc" type="number" step="1" value={customFatPerc} onChange={(e) => setCustomFatPerc(e.target.value)} style={styles.input} placeholder="e.g. 25" />
               </div>
             </div>
             <div style={styles.buttonRow}>
